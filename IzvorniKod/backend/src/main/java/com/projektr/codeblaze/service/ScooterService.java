@@ -3,6 +3,7 @@ package com.projektr.codeblaze.service;
 import com.projektr.codeblaze.dao.ListingRepository;
 import com.projektr.codeblaze.dao.ScooterRepository;
 import com.projektr.codeblaze.domain.Listing;
+import com.projektr.codeblaze.domain.ListingStatus;
 import com.projektr.codeblaze.domain.Scooter;
 import com.projektr.codeblaze.domain.User;
 import jakarta.transaction.Transactional;
@@ -162,6 +163,9 @@ public class ScooterService {
         }
     }
 
-
-
+    public Listing updateListingStatus(Long listingId, String newStatus) {
+        Listing listing = listingRepository.findById(listingId).orElseThrow(NoSuchElementException::new);
+        listing.setStatus(ListingStatus.valueOf(newStatus));
+        return listingRepository.save(listing);
+    }
 }

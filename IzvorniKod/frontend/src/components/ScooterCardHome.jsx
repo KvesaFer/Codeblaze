@@ -2,7 +2,7 @@ import React, {useCallback, useState, useEffect} from 'react';
 import './ScooterCard.css'
 import {useNavigate} from "react-router-dom";
 import {getNicknameFromToken} from "./RegisterScooterForm";
-
+//import { format } from 'date-fns';
 
 function ScooterCardHome({ scooter }) {
 

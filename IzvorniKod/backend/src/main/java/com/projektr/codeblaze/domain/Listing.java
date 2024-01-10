@@ -51,9 +51,15 @@ public class Listing {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private ListingStatus status;
+    private ListingStatus status = ListingStatus.AVAILABLE;
 
     @ManyToOne
     @JoinColumn(name = "scooterId", referencedColumnName = "scooterId")
     private Scooter scooter;
+
+    //ovo mozda drugacije - put metoda kod zahtjeva
+    //dok nije iznajmljen nije definirano pa se onda zapisuje
+    @ManyToOne
+    @JoinColumn(name = "clientId", referencedColumnName = "userId")
+    private User user;
 }

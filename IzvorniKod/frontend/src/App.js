@@ -7,7 +7,7 @@ import LoginForm from './components/LoginForm.jsx';
 import RegisterForm from './components/RegisterForm.jsx';
 import ProfilePending from './components/ProfilePending';
 import ProfileBlocked from './components/ProfileBlocked';
-import MyScooter from './components/MyScooter';
+import MyScooters from './components/MyScooters';
 import RegisterScooterForm from './components/RegisterScooterForm';
 import NavBar from "./components/NavBar";
 import AdminHome from "./components/AdminHome";
@@ -69,7 +69,7 @@ function App() {
                     <ProtectedRoutes>
                         {/*pending se moze login, ali ne moze dodati scooter*/}
                         <ProtectedRouteScooter>
-                            <MyScooter />
+                            <MyScooters />
                         </ProtectedRouteScooter>
                     </ProtectedRoutes>
                 }/>

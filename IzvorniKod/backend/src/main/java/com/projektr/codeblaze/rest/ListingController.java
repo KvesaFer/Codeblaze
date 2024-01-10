@@ -1,6 +1,7 @@
 package com.projektr.codeblaze.rest;
 
 import com.projektr.codeblaze.domain.Listing;
+import com.projektr.codeblaze.domain.ListingStatus;
 import com.projektr.codeblaze.domain.Scooter;
 import com.projektr.codeblaze.domain.User;
 import com.projektr.codeblaze.service.ScooterService;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -46,5 +48,11 @@ public class ListingController {
         return ResponseEntity.ok(listings);
     }
 
-
+    @PutMapping("/update-listing-status/{listingId}")
+    public ResponseEntity<Listing> updateListingStatus(@PathVariable Long listingId, @RequestBody Map<String, String> body) {
+        String newStatus = body.get("status");
+        String newClientId = body.get("clientId");
+        Listing listing = scooterService.updateListingStatus(listingId, newStatus);
+        return ResponseEntity.ok(listing);
+    }
 }

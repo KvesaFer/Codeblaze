@@ -2,7 +2,7 @@ import React, {useCallback, useState, useEffect} from 'react';
 import './ScooterCard.css'
 import {useNavigate} from "react-router-dom";
 import {getNicknameFromToken} from "./RegisterScooterForm";
-import { format } from 'date-fns';
+//import { format } from 'date-fns';
 
 function ScooterCard({ listing }) {
 
@@ -11,17 +11,63 @@ function ScooterCard({ listing }) {
     const [isImageOpen, setIsImageOpen] = useState(false);
     const [currentImageSrc, setCurrentImageSrc] = useState('');
     const [isRequestOpen, setIsRequestOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isAdvertised, setIsAdvertised] = useState(false);
     const [isCurrentUserOwner, setIsCurrentUserOwner] = useState(false);
     const [isAdModalOpen, setIsAdModalOpen] = useState(false);
     const [newImage, setNewImage] = useState('');
+    const [curUser, setCurUser] = useState('');
     const [comments, setComments] = useState({
         comments: ''
     });
-    const { scooter } = listing;
+
+    const { scooter, clientId, status, listingId} = listing;
     const { userId, scooterId, imagePath, model, maxSpeed, batteryCapacity } = scooter;
 
+    useEffect(() => {
+        const checkOwnership = async () => {
+            const nickname = getNicknameFromToken();
+            try {
+                const response = await fetch(`/api/users/by-nickname/${nickname}`);
+                if (response.ok) {
+                    var fetchedUserId = await response.json();
+                    fetchedUserId = fetchedUserId.userId;
+                    console.log("Fetched User ID: ", fetchedUserId);
+                    console.log("OBJEKTNI User ID: ", scooter.user.userId)
+                    console.log(scooter.userId == fetchedUserId);
+                    setIsCurrentUserOwner(scooter.user.userId == fetchedUserId);
+                }
+            } catch (error) {
+                console.error('Error fetching user ID:', error);
+            }
+        };
+
+        checkOwnership();
+    }, [scooter.userId]);
+
+    console.log("IsCUO: ", isCurrentUserOwner);
+    const determineButtons = () => {
+        if (curUser.userId === clientId) {
+            return [
+                { text: 'Vrati', onClick: (e) => handleButtonClick(e, 'vrati') },
+                { text: 'Prijavi', onClick: (e) => handleButtonClick(e, 'prijavi') }
+            ];
+        }
+        if (isCurrentUserOwner) {
+            return [
+                { text: 'Uredi', onClick: (e) => handleButtonClick(e, 'uredi') },
+                { text: 'Izbriši', onClick: (e) => handleButtonClick(e, 'izbrisi') }
+            ];
+        } else {
+            return [
+                { text: 'Unajmi', onClick: (e) => handleButtonClick(e, 'unajmi') },
+                { text: 'Prijavi', onClick: (e) => handleButtonClick(e, 'prijavi') }
+            ];
+        }
+    };
+
+    const buttons = determineButtons();
     const handleButtonClick = (event, action) => {
         event.stopPropagation();
 
@@ -31,9 +77,20 @@ function ScooterCard({ listing }) {
             openAdModal();
         } else if (action === 'izbrisi') {
             handleDeleteListing();
+        } else if (action === 'unajmi') {
+            handleRequest(listingId);
+        } else if (action === 'vrati') {
+            handleReturn(listingId);
         }
-        // ostale akcije koje još treba dodati
     };
+
+    const openEditModal = useCallback(() => {
+        setIsEditModalOpen(true);
+    }, []);
+
+    const closeEditModal = useCallback(() => {
+        setIsEditModalOpen(false);
+    }, []);
 
     const openImageModal = useCallback((imageSrc) => {
         setCurrentImageSrc(imageSrc);
@@ -92,7 +149,6 @@ function ScooterCard({ listing }) {
             [event.target.name]: event.target.value
         });
     };
-
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -155,26 +211,6 @@ function ScooterCard({ listing }) {
             setErrorMessage('Registration failed.');
         }
     };
-    useEffect(() => {
-        const checkOwnership = async () => {
-            const nickname = getNicknameFromToken();
-            try {
-                const response = await fetch(`/api/users/by-nickname/${nickname}`);
-                if (response.ok) {
-                    var fetchedUserId = await response.json();
-                    fetchedUserId = fetchedUserId.userId;
-                    console.log("Fetched User ID: ", fetchedUserId);
-                    console.log("OBJEKTNI User ID: ", scooter.user.userId)
-                    console.log(scooter.userId == fetchedUserId);
-                    setIsCurrentUserOwner(scooter.user.userId == fetchedUserId);
-                }
-            } catch (error) {
-                console.error('Error fetching user ID:', error);
-            }
-        };
-
-        checkOwnership();
-    }, [scooter.userId]);
 
     /*const fetchScooterAvailability = async () => {
         try {
@@ -194,24 +230,6 @@ function ScooterCard({ listing }) {
     useEffect(() => {
         fetchScooterAvailability();
     }, [scooter.scooterId]);*/
-
-
-    console.log("IsCUO: ", isCurrentUserOwner);
-    const determineButtons = () => {
-        if (isCurrentUserOwner) {
-            return [
-                { text: 'Uredi', onClick: (e) => handleButtonClick(e, 'uredi') },
-                { text: 'Izbriši', onClick: (e) => handleButtonClick(e, 'izbrisi') }
-            ];
-        } else {
-            return [
-                { text: 'Unajmi', onClick: (e) => handleButtonClick(e, 'unajmi') },
-                { text: 'Prijavi', onClick: (e) => handleButtonClick(e, 'prijavi') }
-            ];
-        }
-    };
-
-    const buttons = determineButtons();
 
     const RequestChangeModal = ({isOpen, onClose, imageSrc, altText }) => {
         if (!isOpen) return null;
@@ -256,6 +274,53 @@ function ScooterCard({ listing }) {
             window.location.reload();
         } catch (error) {
             console.error('Error:', error);
+        }
+    };
+
+    const handleRequest = async (listingId) => {
+        try {
+            const data = {status:"REQUESTED"}
+
+            const response = await fetch(`/api/scooters/update-listing-status/${listingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            //tu se salje poruka
+            window.location.reload();
+
+            if (!response.ok) {
+                throw new Error('Failed to update listing status');
+            }
+
+        } catch (error) {
+            console.error('Error updating listing status:', error);
+        }
+    };
+
+    const handleReturn = async (listingId) => {
+        try {
+            const data = {status:"RETURNED"}
+
+            const response = await fetch(`/api/scooters/update-listing-status/${listingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            navigate('/home');
+
+
+            if (!response.ok) {
+                throw new Error('Failed to update listing status');
+            }
+
+        } catch (error) {
+            console.error('Error returning scooter:', error);
         }
     };
 

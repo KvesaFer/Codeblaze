@@ -2,10 +2,10 @@ import React, {useEffect, useState} from 'react';
 import ScooterCardHome from './ScooterCardHome';
 import ScooterCard from './ScooterCard';
 import RegisterScooterForm from './RegisterScooterForm';
-import './MyScooter.css';
+import './MyScooters.css';
 import {getNicknameFromToken} from "./RegisterScooterForm";
 
-function MyScooter() {
+function MyScooters() {
     const [scooters, setScooters] = useState([]);
     const [listings, setListings] = useState([]);
     const [activeTab, setActiveTab] = useState('viewScooters'); // 'viewScooters' or 'addScooter' or 'viewListings'
@@ -120,8 +120,8 @@ function MyScooter() {
 
             {activeTab === 'viewListings' && (
                 <div className="scooter-list">
-                    {listings.map(listing => (
-                        <ScooterCard key={listing.id} listing={listing}/>
+                    {listings.filter(listing => listing.status === "AVAILABLE").map((listing, index) => (
+                        <ScooterCard key={index} listing={listing} />
                     ))}
                 </div>
             )}
@@ -129,4 +129,4 @@ function MyScooter() {
     );
 }
 
-export default MyScooter;
+export default MyScooters;
