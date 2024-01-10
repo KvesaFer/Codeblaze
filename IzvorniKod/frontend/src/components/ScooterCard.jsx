@@ -48,13 +48,13 @@ function ScooterCard({ listing }) {
 
     console.log("IsCUO: ", isCurrentUserOwner);
     const determineButtons = () => {
-        if (curUser.userId === clientId) {
+        if (curUser.userId === clientId && status === "RENTED") {
             return [
                 { text: 'Vrati', onClick: (e) => handleButtonClick(e, 'vrati') },
                 { text: 'Prijavi', onClick: (e) => handleButtonClick(e, 'prijavi') }
             ];
         }
-        if (isCurrentUserOwner) {
+        else if (isCurrentUserOwner) {
             return [
                 { text: 'Uredi', onClick: (e) => handleButtonClick(e, 'uredi') },
                 { text: 'Izbriši', onClick: (e) => handleButtonClick(e, 'izbrisi') }
